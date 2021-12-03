@@ -14,7 +14,7 @@
     ],
     "require": {
         "illuminate/support": "^7.0|^8.0",
-        "osoobe/laravel-utilities": "*",
+        "osoobe/laravel-utilities": "*"
     },
     "autoload": {
         "psr-4": {

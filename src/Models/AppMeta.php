@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Osoobe\Utilities\Helpers\Utilities;
+use Osoobe\Utilities\Traits\TimeDiff;
 
 /**
  * Settings for laravel application.
@@ -14,10 +15,16 @@ use Osoobe\Utilities\Helpers\Utilities;
  * @property mixed $meta_value      Application setting value.
  */
 class AppMeta extends Model {
+
     use SoftDeletes;
+    use TimeDiff;
 
     protected $fillable = [
         'meta_key','meta_value', 'category'
+    ];
+
+    protected $casts = [
+        'data' => 'array'
     ];
 
 
