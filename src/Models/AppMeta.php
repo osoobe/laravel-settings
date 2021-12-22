@@ -20,7 +20,7 @@ class AppMeta extends Model {
     use TimeDiff;
 
     protected $fillable = [
-        'meta_key','meta_value', 'category'
+        'meta_key','meta_value', 'data', 'category'
     ];
 
     protected $casts = [
