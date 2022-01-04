@@ -18,8 +18,9 @@ class CreateAppMetasTable extends Migration
             $table->id();
 
             $table->string('meta_key')->unique();
+            $table->string('meta_type')->nullable();
             $table->longText('meta_value');
-            $table->string('category')->nullable()->default('default');
+            $table->string('category')->nullable()->default('default')->index();
             $table->json('data')->nullable();
 
             $table->timestamps();

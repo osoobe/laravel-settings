@@ -20,7 +20,7 @@ class AppMeta extends Model {
     use TimeDiff;
 
     protected $fillable = [
-        'meta_key','meta_value', 'data', 'category'
+        'meta_key','meta_value', 'meta_type', 'data', 'category'
     ];
 
     protected $casts = [
@@ -41,6 +41,19 @@ class AppMeta extends Model {
         return Utilities::categorizeObjects($metas, 'category');
     }
 
+    public static function getMeta(string $key) {
+        $data = static::where('meta_key', $key)->first();
+        if(!empty($data)) {
+            $type = $data->meta_type;
+            $val = $data->meta_value;
+            if ( $type == "array" ) {
+                $val = json_decode($val, true);
+            }
+            return $val;
+        }
+        return null;
+    }
+
 
     /**
      * Get setting from cache or database.
@@ -50,25 +63,37 @@ class AppMeta extends Model {
      * @param mixed $type          Cast application setting value.
      * @return mixed               Returns the application setting value
      */
-    public static function getMetaOrCached(string $key, $default=null, $type=null) {
+    public static function getMetaOrCached(string $key, $default=null, $type=null, $clear=false) {
         $val = $default;
+        if ( empty($type) ) {
+            $type = gettype($default);
+        }
         $cached_key = static::getCachedKey($key);
-        if (Cache::has($cached_key)) {
+        if (! $clear && Cache::has($cached_key)) {
             $val = Cache::get($cached_key);
         } else {
             $data = static::where('meta_key', $key)->first();
             if(!empty($data)) {
+                $type = $data->meta_type ?? $type;
                 $val = $data->meta_value;
-            } else if ($default != null) {
-                static::updateOrCreate(
-                    ['meta_key' =>  $key],
-                    ['meta_value' => $default]
+            } else {
+                if ( $type == "array" ) {
+                    $val = json_encode($val);
+                }
+                static::create(
+                    [
+                        'meta_key' =>  $key,
+                        'meta_value' => $val,
+                        'meta_type' => $type
+                    ]
                 );
             }
             Cache::forever($cached_key, $val);
         }
-
-        if ( $type != null && !empty($val) ) {
+        if ( !empty($val) && !empty($type) ) {
+            if ( is_string($val) && $type == "array" ) {
+                $val = json_decode($val, true);
+            }
             settype($val, $type);
             return $val;
         }
@@ -82,11 +107,14 @@ class AppMeta extends Model {
      * @param mixed $val
      * @return void
      */
-    public static function updateOrCreateWithCache(string $key, $val) {
+    public static function updateOrCreateWithCache(string $key, $val, $data=null, $type=null) {
         $cached_key = static::getCachedKey($key);
+        if ( empty($type) ) {
+            $type = gettype($val);
+        }
         static::updateOrCreate(
             ['meta_key' =>  $key],
-            ['meta_value' => $val]
+            ['meta_value' => $val, 'meta_type' => $type]
         );
         Cache::forever($cached_key, $val);
     }
