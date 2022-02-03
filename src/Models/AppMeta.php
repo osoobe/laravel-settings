@@ -41,6 +41,12 @@ class AppMeta extends Model {
         return Utilities::categorizeObjects($metas, 'category');
     }
 
+    /**
+     * Get meta value from the database
+     *
+     * @param string $key
+     * @return mixed
+     */
     public static function getMeta(string $key) {
         $data = static::where('meta_key', $key)->first();
         if(!empty($data)) {
@@ -52,6 +58,22 @@ class AppMeta extends Model {
             return $val;
         }
         return null;
+    }
+
+    /**
+     * Return meta value from the database or the value form the config file.
+     *
+     * @param string $key           Key for the config function
+     * @param string $default       Default value if no meta value or config key found
+     * @return mixed
+     */
+    public static function getMetaOrConfig(string $key, $default) {
+        $meta = static::getMeta($key);
+        if ( $meta != null ) {
+            return $meta;
+        }
+
+        return config($key, $default);
     }
 
 
