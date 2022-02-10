@@ -67,7 +67,7 @@ class AppMeta extends Model {
      * @param string $default       Default value if no meta value or config key found
      * @return mixed
      */
-    public static function getMetaOrConfig(string $key, $default) {
+    public static function getMetaOrConfig(string $key, $default=null) {
         $meta = static::getMeta($key);
         if ( $meta != null ) {
             return $meta;
