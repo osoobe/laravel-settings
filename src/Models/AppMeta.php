@@ -134,9 +134,13 @@ class AppMeta extends Model {
         if ( empty($type) ) {
             $type = gettype($val);
         }
+
         static::updateOrCreate(
             ['meta_key' =>  $key],
-            ['meta_value' => $val, 'meta_type' => $type]
+            [
+                'meta_value' => ( $type == "array" )? json_encode($val) : $val,
+                'meta_type' => $type
+            ]
         );
         Cache::forever($cached_key, $val);
     }
