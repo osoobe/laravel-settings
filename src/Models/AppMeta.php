@@ -99,10 +99,10 @@ class AppMeta extends Model {
                 $type = $data->meta_type ?? $type;
                 $val = $data->meta_value;
             } else {
-                if ( $type == "array" ) {
+                if (! is_string($val) && $type == "array" ) {
                     $val = json_encode($val);
                 }
-                static::create(
+                static::updateOrCreate(
                     [
                         'meta_key' =>  $key,
                         'meta_value' => $val,
@@ -134,6 +134,7 @@ class AppMeta extends Model {
         if ( empty($type) ) {
             $type = gettype($val);
         }
+<<<<<<< HEAD
 
         static::updateOrCreate(
             ['meta_key' =>  $key],
@@ -141,8 +142,17 @@ class AppMeta extends Model {
                 'meta_value' => ( $type == "array" )? json_encode($val) : $val,
                 'meta_type' => $type
             ]
+=======
+        if ( ! is_string($val) && $type == "array" ) {
+            $val = json_encode($val);
+        }
+        $model = static::updateOrCreate(
+            ['meta_key' =>  $key],
+            ['meta_value' => $val, 'meta_type' => $type, 'data' => $data]
+>>>>>>> close: add boot
         );
         Cache::forever($cached_key, $val);
+        return $model;
     }
 
     /**
@@ -153,6 +163,29 @@ class AppMeta extends Model {
      */
     public static function getCachedKey(string $key): string {
         return "app_meta_$key";
+    }
+
+
+    /**
+     * Model boot function
+     *
+     * @return void
+     */
+    public static function boot() {
+
+        parent::boot();
+
+        $adjust = function($model) {
+            if ( empty($model->meta_type) ) {
+                $model->meta_type = gettype($model->meta_value);
+            }
+            if ( ! is_string($model->meta_type) && $model->meta_type == "array" ) {
+                $model->meta_value = json_encode($model->meta_value);
+            }
+        };
+
+        static::creating($adjust);
+        static::updating($adjust);
     }
 
 }
