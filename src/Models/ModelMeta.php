@@ -15,31 +15,41 @@ use Osoobe\Utilities\Traits\TimeDiff;
  * @property string $meta_key       Application setting key.
  * @property mixed $meta_value      Application setting value.
  */
-class AppMeta extends Model {
+class ModelMeta extends Model {
 
     use MetaTrait;
-    use SoftDeletes;
     use TimeDiff;
-    
-    protected $table = "app_metas";
+
+    protected $table = "model_metas";
 
     protected $fillable = [
+        'model_id', 'model_type',
         'meta_key','meta_value', 'meta_type', 'data', 'category'
     ];
-
+    
     protected $casts = [
         'data' => 'array'
     ];
 
+    /**
+     * Get the parent model
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function modellable()
+    {
+        return $this->morphTo(__FUNCTION__, 'model_type', 'model_id');
+    }
 
     /**
-     * Get application settings.
+     * Get key prefix
      *
-     * @return mixed        Returns application settings.
+     * @return string
      */
-    public static function getAppSettingsByCategory() {
-        return static::getMetaByCategory();
+    public static function getKeyPrefix(): string {
+        return "model_meta_";
     }
+
 
 }
 ?>
