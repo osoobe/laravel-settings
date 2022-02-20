@@ -118,6 +118,22 @@ trait MetaTrait {
         Cache::forever($cached_key, $val);
     }
 
+    /**
+     * Update or create meta
+     *
+     * @param string $key
+     * @param mixed $val
+     * @return mixed
+     */
+    public static function updateKey(string $key, $val) {
+        return static::updateOrCreate(
+            ['meta_key' =>  $key],
+            [
+                'meta_value' => $val
+            ]
+        );
+    }
+
 
     /**
      * Create Notification Settings.
@@ -127,17 +143,13 @@ trait MetaTrait {
      */
     protected static function bootMetaTrait(): void {
         static::creating(function ($model) {
-            if ( empty($model->meta_type) ) {
-                $model->meta_type = gettype($model->meta_value);
-            }
+            $model->meta_type = gettype($model->meta_value);
             if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
                 $model->meta_value = json_encode($model->meta_value);
             }
         });
         static::updating(function ($model) {
-            if ( empty($model->meta_type) ) {
-                $model->meta_type = gettype($model->meta_value);
-            }
+            $model->meta_type = gettype($model->meta_value);
             if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
                 $model->meta_value = json_encode($model->meta_value);
             }
@@ -161,6 +173,10 @@ trait MetaTrait {
      */
     public static function getKeyPrefix(): string {
         return "app_meta_";
+    }
+
+    public static function scopeMetaKey($query, $key) {
+        return $query->where('meta_key', $key);
     }
 
 }
