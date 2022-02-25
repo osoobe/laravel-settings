@@ -3,8 +3,10 @@
 
 namespace Osoobe\Laravel\Settings\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Osoobe\Utilities\Helpers\Utilities;
+
 
 trait MetaTrait {
 
@@ -134,6 +136,9 @@ trait MetaTrait {
         );
     }
 
+    public static function getDefaultCategory() {
+        return "default";
+    }
 
     /**
      * Create Notification Settings.
@@ -142,18 +147,29 @@ trait MetaTrait {
      * @return void
      */
     protected static function bootMetaTrait(): void {
-        static::creating(function ($model) {
+        $default_category = self::getDefaultCategory();
+
+        // If the default category of the model is not "default",
+        // then filter out categories based on the model default category
+        if ( $default_category != "default" ) {
+            static::addGlobalScope('metaDefaultCategory', function (Builder $builder) use($default_category) {
+                $builder->where('category', $default_category);
+            });
+        }
+
+        $func = function ($model) use($default_category) {
             $model->meta_type = gettype($model->meta_value);
             if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
                 $model->meta_value = json_encode($model->meta_value);
             }
-        });
-        static::updating(function ($model) {
-            $model->meta_type = gettype($model->meta_value);
-            if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
-                $model->meta_value = json_encode($model->meta_value);
+
+            if ( empty($model->category) ) {
+                $model->category = $default_category;
             }
-        });
+        };
+        
+        static::creating($func);
+        static::updating($func);
     }
 
     /**

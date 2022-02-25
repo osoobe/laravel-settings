@@ -22,6 +22,7 @@ class AppMeta extends Model {
     use TimeDiff;
     
     protected $table = "app_metas";
+    const CATEGORY = "default";
 
     protected $fillable = [
         'meta_key','meta_value', 'meta_type', 'data', 'category'

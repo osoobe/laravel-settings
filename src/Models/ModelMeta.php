@@ -19,6 +19,7 @@ class ModelMeta extends Model {
 
     use MetaTrait;
     use TimeDiff;
+    const CATEGORY = "default";
 
     protected $table = "model_metas";
 
