@@ -45,11 +45,23 @@ trait MetaTrait {
     /**
      * Return meta value from the database or the value form the config file.
      *
+     * @deprecated 1.5.0
      * @param string $key           Key for the config function
      * @param string $default       Default value if no meta value or config key found
      * @return mixed
      */
     public static function getMetaOrConfig(string $key, $default=null) {
+        return static::config($key, $default);
+    }
+
+    /**
+     * Return meta value from the database or the value form the config file.
+     *
+     * @param string $key           Key for the config function
+     * @param string $default       Default value if no meta value or config key found
+     * @return mixed
+     */
+    public static function config(string $key, $default=null) {
         $meta = static::getMeta($key);
         if ( $meta != null ) {
             return $meta;
