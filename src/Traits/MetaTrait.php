@@ -42,6 +42,23 @@ trait MetaTrait {
         return null;
     }
 
+
+    /**
+     * Get the meta value based on the given type
+     *
+     * @return mixed
+     */
+    public function getMetaValueAttribute() {
+        $type = $this->meta_type;
+        $val = $this->getRawOriginal('meta_value');
+        if ( $type == 'array' ) {
+            return json_decode($val, true);
+        } elseif ( !empty($type) ) {
+            settype($val, $type);
+        }
+        return $val;
+    }
+
     /**
      * Return meta value from the database or the value form the config file.
      *
