@@ -32,12 +32,7 @@ trait MetaTrait {
     public static function getMeta(string $key) {
         $data = static::where('meta_key', $key)->first();
         if(!empty($data)) {
-            $type = $data->meta_type;
-            $val = $data->meta_value;
-            if ( $type == "array" ) {
-                $val = json_decode($val, true);
-            }
-            return $val;
+            return $data->meta_value;
         }
         return null;
     }
@@ -49,7 +44,7 @@ trait MetaTrait {
      * @return mixed
      */
     public function getMetaValueAttribute() {
-        $type = $this->meta_type;
+        $type = $this->getRawOriginal('meta_type');
         $val = $this->getRawOriginal('meta_value');
         if ( $type == 'array' ) {
             return json_decode($val, true);
@@ -196,7 +191,7 @@ trait MetaTrait {
                 $model->category = $default_category;
             }
         };
-        
+
         static::creating($func);
         static::updating($func);
     }
