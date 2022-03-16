@@ -13,6 +13,7 @@ class CreateModelMetasTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('model_metas');
         Schema::create('model_metas', function (Blueprint $table) {
             $table->id();
             $table->morphs('model');
