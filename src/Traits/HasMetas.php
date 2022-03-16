@@ -48,7 +48,7 @@ trait HasMetas {
         if ( ! $meta ) {
             return null;
         }
-        return $meta->meta_value;
+        return $meta->value;
     }
 
     /**

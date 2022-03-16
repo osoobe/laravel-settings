@@ -43,7 +43,7 @@ trait MetaTrait {
      *
      * @return mixed
      */
-    public function getMetaValueAttribute() {
+    public function getValueAttribute() {
         $type = $this->getRawOriginal('meta_type');
         $val = $this->getRawOriginal('meta_value');
         if ( $type == 'array' ) {
@@ -183,6 +183,9 @@ trait MetaTrait {
 
         $func = function ($model) use($default_category) {
             $model->meta_type = gettype($model->meta_value);
+            if ($model->meta_key == 'system_sms_data' ) {
+                dd($model->meta_type, $model->meta_value);
+            }
             if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
                 $model->meta_value = json_encode($model->meta_value);
             }
