@@ -183,9 +183,6 @@ trait MetaTrait {
 
         $func = function ($model) use($default_category) {
             $model->meta_type = gettype($model->meta_value);
-            if ($model->meta_key == 'system_sms_data' ) {
-                dd($model->meta_type, $model->meta_value);
-            }
             if ( $model->meta_type == "array" && is_array($model->meta_value) ) {
                 $model->meta_value = json_encode($model->meta_value);
             }
