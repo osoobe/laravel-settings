@@ -32,7 +32,7 @@ trait MetaTrait {
     public static function getMeta(string $key) {
         $data = static::where('meta_key', $key)->first();
         if(!empty($data)) {
-            return $data->meta_value;
+            return $data->value;
         }
         return null;
     }
@@ -78,7 +78,6 @@ trait MetaTrait {
         if ( $meta != null ) {
             return $meta;
         }
-
         return config($key, $default);
     }
 
