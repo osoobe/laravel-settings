@@ -37,6 +37,38 @@ trait MetaTrait {
         return null;
     }
 
+    /**
+     * Update or create meta
+     *
+     * @param string $key
+     * @param mixed $val
+     * @return mixed
+     */
+    public static function createMeta(string $key, $val) {
+        return static::firstOrCreate(
+            ['meta_key' =>  $key],
+            [
+                'meta_value' => $val
+            ]
+        );
+    }
+
+    /**
+     * Update or create meta
+     *
+     * @param string $key
+     * @param mixed $val
+     * @return mixed
+     */
+    public static function updateMeta(string $key, $val) {
+        return static::updateOrCreate(
+            ['meta_key' =>  $key],
+            [
+                'meta_value' => $val
+            ]
+        );
+    }
+
 
     /**
      * Get the meta value based on the given type

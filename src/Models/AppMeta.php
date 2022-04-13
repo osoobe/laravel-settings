@@ -16,9 +16,8 @@ use Osoobe\Utilities\Traits\TimeDiff;
  * @property mixed $meta_value      Application setting value.
  */
 class AppMeta extends Model {
-
+    
     use MetaTrait;
-    use SoftDeletes;
     use TimeDiff;
     
     protected $table = "app_metas";
