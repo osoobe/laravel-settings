@@ -50,7 +50,7 @@ trait MetaTrait {
             return $val;
         }
 
-        static::createMeta($key, $val);
+        static::createMeta($key, $default);
         return $default;
     }
 
