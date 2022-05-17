@@ -38,6 +38,23 @@ trait MetaTrait {
     }
 
     /**
+     * Get or create meta
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function getOrCreateMeta(string $key, $default) {
+        $val = static::getMeta($key);
+        if ( !empty($val) ) {
+            return $val;
+        }
+
+        static::createMeta($key, $val);
+        return $default;
+    }
+
+    /**
      * Update or create meta
      *
      * @param string $key
