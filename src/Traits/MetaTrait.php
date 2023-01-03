@@ -189,6 +189,7 @@ trait MetaTrait {
                 'meta_type' => $type
             ]
         );
+        Cache::forget($cached_key);
         Cache::forever($cached_key, $val);
     }
 
