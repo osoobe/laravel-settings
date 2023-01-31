@@ -29,12 +29,12 @@ trait MetaTrait {
      * @param string $key
      * @return mixed
      */
-    public static function getMeta(string $key) {
+    public static function getMeta(string $key, $default=null) {
         $data = static::where('meta_key', $key)->first();
         if(!empty($data)) {
             return $data->value;
         }
-        return null;
+        return $default;
     }
 
     /**
