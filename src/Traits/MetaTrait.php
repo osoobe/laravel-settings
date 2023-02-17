@@ -124,7 +124,7 @@ trait MetaTrait {
      */
     public static function config(string $key, $default=null) {
         $meta = static::getMeta($key);
-        if ( $meta != null ) {
+        if ( ! is_null($meta) ) {
             return $meta;
         }
         return config($key, $default);
