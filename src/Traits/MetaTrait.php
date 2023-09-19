@@ -38,6 +38,16 @@ trait MetaTrait {
     }
 
     /**
+     * Check if meta key exists
+     *
+     * @param string $key
+     * @return boolean
+     */
+    public static function keyExists(string $key): bool {
+        return static::where('meta_key', $key)->exists();
+    }
+
+    /**
      * Get or create meta
      *
      * @param string $key
