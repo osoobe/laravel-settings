@@ -140,6 +140,25 @@ trait MetaTrait {
         return config($key, $default);
     }
 
+    /**
+     * Set config
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param bool $set_sys_config
+     * @return void
+     */
+    public static function setConfig(string $key, $value, bool $set_sys_config = true) {
+        static::updateMeta($key, $value);
+        if ( $set_sys_config ) {
+            try {
+                config([$key => $value]);
+            } catch (\Throwable $th) {
+                logger("Config: unable to sent config for $key");
+            }
+        }
+    }
+
 
     /**
      * Get setting from cache or database.
