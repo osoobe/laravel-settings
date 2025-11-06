@@ -133,7 +133,11 @@ trait MetaTrait {
      * @return mixed
      */
     public static function config(string $key, $default=null) {
-        $meta = static::getMeta($key);
+        try {
+            $meta = static::getMeta($key);
+        } catch (\Throwable $th) {
+            $meta = null;
+        }
         if ( ! is_null($meta) ) {
             return $meta;
         }
@@ -150,6 +154,44 @@ trait MetaTrait {
      */
     public static function setConfig(string $key, $value, bool $set_sys_config = true) {
         static::updateMeta($key, $value);
+        if ( $set_sys_config ) {
+            try {
+                config([$key => $value]);
+            } catch (\Throwable $th) {
+                logger("Config: unable to sent config for $key");
+            }
+        }
+    }
+
+    /**
+     * Return decrypted meta value from the database or the value form the config file.
+     *
+     * @param string $key           Key for the config function
+     * @param string $default       Default value if no meta value or config key found
+     * @return mixed
+     */
+    public static function secret(string $key, $default=null) {
+        try {
+            $meta = static::getMeta($key);
+        } catch (\Throwable $th) {
+            $meta = null;
+        }
+        if ( ! is_null($meta) ) {
+            return decrypt($meta);
+        }
+        return config($key, $default);
+    }
+
+    /**
+     * Set encrypted config
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param bool $set_sys_config
+     * @return void
+     */
+    public static function setSecret(string $key, $value, bool $set_sys_config = true) {
+        static::updateMeta($key, encrypt($value));
         if ( $set_sys_config ) {
             try {
                 config([$key => $value]);
