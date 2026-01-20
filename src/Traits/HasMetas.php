@@ -15,6 +15,23 @@ trait HasMetas {
         return $this->morphMany(ModelMeta::class, __FUNCTION__, 'model_type', 'model_id');
     }
 
+    /**
+     * Search model for related metas
+     *
+     * @param mixed $query
+     * @param string $meta_key
+     * @param mixed $meta_value
+     * @return mixed|null
+     */
+    public function scopeHasMetas($query, string $meta_key, $meta_value=null) {
+        return $query->whereHas('metas', function($sq) use($meta_key, $meta_value) {
+            $sq->where('meta_key', $meta_key);
+            if ( !empty($meta_value) ) {
+                $sq->where('meta_value', $meta_value);
+            }
+        });
+    }
+
 
     /**
      * Get meta for the given relationship
