@@ -224,6 +224,252 @@ AppMeta::updateOrCreateWithCache('site.name', 'New Name');
 
 ---
 
+## Examples
+
+### 1. Maintenance Mode Middleware
+
+Toggle maintenance mode from the database without touching `.env` or redeploying.
+
+```php
+// app/Http/Middleware/CheckMaintenance.php
+use Osoobe\Laravel\Settings\Models\AppMeta;
+
+class CheckMaintenance
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (AppMeta::getMetaOrCached('site.maintenance', false)) {
+            abort(503, 'We are currently down for maintenance.');
+        }
+
+        return $next($request);
+    }
+}
+```
+
+```php
+// Turn maintenance on/off from anywhere (e.g. an admin panel)
+AppMeta::updateOrCreateWithCache('site.maintenance', true);
+AppMeta::updateOrCreateWithCache('site.maintenance', false);
+```
+
+---
+
+### 2. Admin Panel: Override Mail Settings at Runtime
+
+Allow an admin to change the application's mail config through a form. The new values take effect immediately in the same process — no redeploy needed.
+
+```php
+// app/Http/Controllers/Admin/MailSettingsController.php
+use Osoobe\Laravel\Settings\Models\AppMeta;
+
+class MailSettingsController extends Controller
+{
+    public function show()
+    {
+        return view('admin.mail', [
+            'from_address' => AppMeta::config('mail.from.address', config('mail.from.address')),
+            'from_name'    => AppMeta::config('mail.from.name', config('mail.from.name')),
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'from_address' => 'required|email',
+            'from_name'    => 'required|string',
+        ]);
+
+        AppMeta::setConfig('mail.from.address', $request->from_address);
+        AppMeta::setConfig('mail.from.name', $request->from_name);
+
+        return back()->with('success', 'Mail settings updated.');
+    }
+}
+```
+
+---
+
+### 3. Storing an Encrypted Third-Party API Key
+
+Store sensitive credentials encrypted in the database and retrieve them anywhere.
+
+```php
+// Store once (e.g. from an admin form)
+AppMeta::setSecret('services.stripe.secret', $request->stripe_secret_key);
+AppMeta::setSecret('services.sendgrid.key', $request->sendgrid_api_key);
+
+// Retrieve decrypted in a service class
+class StripePaymentService
+{
+    public function client(): \Stripe\StripeClient
+    {
+        return new \Stripe\StripeClient(AppMeta::secret('services.stripe.secret'));
+    }
+}
+```
+
+---
+
+### 4. Enum-Backed Settings for a Payment Service
+
+Use `EnumConfig` to define all config keys in one place with full IDE autocompletion.
+
+```php
+// app/Enums/PaymentConfig.php
+use Osoobe\Laravel\Settings\Traits\EnumConfig;
+
+enum PaymentConfig: string
+{
+    use EnumConfig;
+
+    case StripeKey       = 'services.stripe.secret';
+    case Currency        = 'payment.currency';
+    case MaxRetries      = 'payment.max_retries';
+    case WebhookEnabled  = 'payment.webhook_enabled';
+}
+```
+
+```php
+// Seed defaults on first boot (e.g. in a seeder or AppServiceProvider)
+PaymentConfig::Currency->setConfig('USD');
+PaymentConfig::MaxRetries->setConfig(3);
+PaymentConfig::WebhookEnabled->setConfig(true);
+PaymentConfig::StripeKey->setSecret(env('STRIPE_SECRET'));
+
+// Read anywhere — DB overrides config file
+$currency = PaymentConfig::Currency->config('USD');       // 'USD'
+$retries  = PaymentConfig::MaxRetries->config(3);         // 3 (int)
+$enabled  = PaymentConfig::WebhookEnabled->config(false); // true (bool)
+$key      = PaymentConfig::StripeKey->secret();           // decrypted key
+```
+
+---
+
+### 5. Per-User Preferences with HasMetas
+
+Store arbitrary per-user settings without adding columns to the `users` table.
+
+```php
+// app/Models/User.php
+use Osoobe\Laravel\Settings\Traits\HasMetas;
+
+class User extends Authenticatable
+{
+    use HasMetas;
+}
+```
+
+```php
+// app/Http/Controllers/UserPreferencesController.php
+class UserPreferencesController extends Controller
+{
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        $user->updateMeta('theme', $request->input('theme', 'light'));
+        $user->updateMeta('locale', $request->input('locale', 'en'));
+        $user->updateMeta('notifications_enabled', $request->boolean('notifications_enabled'));
+
+        return back()->with('success', 'Preferences saved.');
+    }
+
+    public function show(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'theme'                  => $user->getMetaValue('theme'),
+            'locale'                 => $user->getMetaValue('locale'),
+            'notifications_enabled'  => $user->getMetaValue('notifications_enabled'),
+        ]);
+    }
+}
+```
+
+```php
+// Query all admin users by a meta value
+$admins = User::hasMetas('role', 'admin')->get();
+
+// Query users who have opted into a newsletter (key exists, any value)
+$subscribers = User::hasMetas('newsletter')->get();
+```
+
+---
+
+### 6. Audit Trail with History
+
+Track field changes on any model automatically using the `History` trait.
+
+```php
+// app/Models/Order.php
+use Osoobe\Laravel\Settings\Traits\HasMetas;
+use Osoobe\Laravel\Settings\Traits\History;
+
+class Order extends Model
+{
+    use HasMetas, History;
+
+    public function metaTrack(): array
+    {
+        return ['status', 'total', 'payment_method'];
+    }
+}
+```
+
+```php
+// Every save automatically appends a diff to the 'history' meta key.
+$order = Order::create(['status' => 'pending', 'total' => 99.99]);
+// history: [['status' => 'pending', 'total' => 99.99, 'history_status' => 'created', ...]]
+
+$order->update(['status' => 'paid']);
+// history: [..., ['status' => 'paid', 'history_status' => 'updated', 'timestamp' => ...]]
+
+// Read the full audit log
+$history = $order->getMetaHistory();
+
+foreach ($history as $entry) {
+    echo "{$entry['history_status']} at {$entry['updated_at']}: status → {$entry['status']}";
+}
+```
+
+---
+
+### 7. Grouped Settings via AppMeta Subclass
+
+Subclass `AppMeta` with a `CATEGORY` constant to keep domain-specific settings isolated.
+
+```php
+// app/Models/Settings/SeoSettings.php
+use Osoobe\Laravel\Settings\Models\AppMeta;
+
+class SeoSettings extends AppMeta
+{
+    const CATEGORY = 'seo';
+
+    public static function getKeyPrefix(): string
+    {
+        return 'seo_meta_';
+    }
+}
+```
+
+```php
+// All reads and writes are automatically scoped to category = 'seo'
+SeoSettings::setConfig('seo.meta_title', 'My Site — Home');
+SeoSettings::setConfig('seo.meta_description', 'Welcome to my site.');
+SeoSettings::updateMeta('seo.robots', 'index, follow');
+
+$title       = SeoSettings::config('seo.meta_title');
+$description = SeoSettings::getMeta('seo.meta_description');
+
+// Retrieve all SEO settings grouped by category
+$grouped = SeoSettings::getAppSettingsByCategory();
+```
+
+---
+
 ## Testing
 
 ```bash
