@@ -1,0 +1,83 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - "claude/**"
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  test:
+    name: "PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.1", "8.2", "8.3", "8.4"]
+        laravel: ["8.*", "9.*", "10.*"]
+        include:
+          # Map each Laravel version to the matching Testbench major
+          - laravel: "8.*"
+            testbench: "^6.0"
+          - laravel: "9.*"
+            testbench: "^7.0"
+          - laravel: "10.*"
+            testbench: "^8.0"
+        exclude:
+          # Testbench 6.x is not compatible with PHP 8.3+
+          - php: "8.3"
+            laravel: "8.*"
+          - php: "8.4"
+            laravel: "8.*"
+          # Testbench 7.x is not compatible with PHP 8.4
+          - php: "8.4"
+            laravel: "9.*"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-
+
+      - name: Install dependencies
+        run: |
+          # Laravel 8 and 9 are EOL and have unpatched CVEs; disable Composer's
+          # block-insecure guard so dependency resolution can proceed in CI.
+          composer config --global audit.block-insecure false
+          composer require \
+            "illuminate/support:${{ matrix.laravel }}" \
+            --no-update
+          composer require --dev \
+            "orchestra/testbench:${{ matrix.testbench }}" \
+            --no-update
+          composer update \
+            --${{ matrix.stability || 'prefer-stable' }} \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress
+
+      - name: Run tests
+        run: vendor/bin/phpunit
