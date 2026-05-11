@@ -32,7 +32,7 @@ trait History {
         };
 
         static::created(function($model) use($func) {
-            $data = $model->getRawOriginal();
+            $data = $model->getAttributes();
             $trackers = $model->metaTrack();
             $changes = $func($data, $trackers);
             $changes['history_status'] = "created";
@@ -40,7 +40,7 @@ trait History {
         });
 
         static::updated(function($model) use($func) {
-            $data = $model->getRawOriginal();
+            $data = $model->getAttributes();
             $trackers = $model->metaTrack();
             $changes = $func($data, $trackers);
             $changes['history_status'] = "updated";

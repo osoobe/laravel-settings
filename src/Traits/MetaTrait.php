@@ -291,7 +291,7 @@ trait MetaTrait {
      * @return void
      */
     protected static function bootMetaTrait(): void {
-        $default_category = self::getDefaultCategory();
+        $default_category = static::getDefaultCategory();
 
         // If the default category of the model is not "default",
         // then filter out categories based on the model default category
