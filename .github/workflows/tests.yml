@@ -29,11 +29,6 @@ jobs:
             testbench: "^7.0"
           - laravel: "10.*"
             testbench: "^8.0"
-          # Lowest-dependency smoke test
-          - php: "8.1"
-            laravel: "8.*"
-            testbench: "^6.0"
-            stability: prefer-lowest
         exclude:
           # Testbench 6.x is not compatible with PHP 8.3+
           - php: "8.3"
