@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    name: "PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / ${{ matrix.stability }}"
+    name: "PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}"
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,19 +21,28 @@ jobs:
       matrix:
         php: ["8.1", "8.2", "8.3", "8.4"]
         laravel: ["8.*", "9.*", "10.*"]
-        stability: [prefer-stable]
         include:
-          # Lowest-dependency smoke test on oldest supported combination
+          # Map each Laravel version to the matching Testbench major
+          - laravel: "8.*"
+            testbench: "^6.0"
+          - laravel: "9.*"
+            testbench: "^7.0"
+          - laravel: "10.*"
+            testbench: "^8.0"
+          # Lowest-dependency smoke test
           - php: "8.1"
             laravel: "8.*"
+            testbench: "^6.0"
             stability: prefer-lowest
         exclude:
-          # Laravel 10 requires PHP 8.1+, already covered — no need to repeat
-          # Laravel 8 dropped official support for PHP 8.3+ (testbench constraint)
+          # Testbench 6.x is not compatible with PHP 8.3+
           - php: "8.3"
             laravel: "8.*"
           - php: "8.4"
             laravel: "8.*"
+          # Testbench 7.x is not compatible with PHP 8.4
+          - php: "8.4"
+            laravel: "9.*"
 
     steps:
       - name: Checkout
@@ -54,14 +63,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ matrix.stability }}-${{ hashFiles('composer.json') }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-${{ matrix.stability }}-
+            ${{ runner.os }}-php${{ matrix.php }}-laravel${{ matrix.laravel }}-
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/support:${{ matrix.laravel }}" --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
+          composer require \
+            "illuminate/support:${{ matrix.laravel }}" \
+            "orchestra/testbench:${{ matrix.testbench }}" \
+            --no-update
+          composer update \
+            --${{ matrix.stability || 'prefer-stable' }} \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress
 
       - name: Run tests
         run: vendor/bin/phpunit
