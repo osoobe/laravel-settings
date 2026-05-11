@@ -69,6 +69,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Laravel 8 and 9 are EOL and have unpatched CVEs; disable Composer's
+          # block-insecure guard so dependency resolution can proceed in CI.
+          composer config --global audit.block-insecure false
           composer require \
             "illuminate/support:${{ matrix.laravel }}" \
             --no-update
