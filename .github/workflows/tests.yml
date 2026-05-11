@@ -71,6 +71,8 @@ jobs:
         run: |
           composer require \
             "illuminate/support:${{ matrix.laravel }}" \
+            --no-update
+          composer require --dev \
             "orchestra/testbench:${{ matrix.testbench }}" \
             --no-update
           composer update \
