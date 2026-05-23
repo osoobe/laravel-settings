@@ -3,11 +3,8 @@
 namespace Osoobe\Laravel\Settings\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Osoobe\Laravel\Settings\Traits\MetaTrait;
-use Osoobe\Utilities\Helpers\Utilities;
-use Osoobe\Utilities\Traits\TimeDiff;
 
 /**
  * Settings for laravel application.
@@ -18,7 +15,6 @@ use Osoobe\Utilities\Traits\TimeDiff;
 class ModelMeta extends Model {
 
     use MetaTrait;
-    use TimeDiff;
     const CATEGORY = "default";
 
     protected $table = "model_metas";

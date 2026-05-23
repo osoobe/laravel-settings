@@ -3,7 +3,6 @@
 namespace Osoobe\Laravel\Settings\Traits;
 
 use Carbon\Carbon;
-use Osoobe\Utilities\Helpers\Utilities;
 
 trait History {
 
@@ -58,7 +57,7 @@ trait History {
             $history = [];
         }
 
-        $history_status = Utilities::getArrayValue($changes, 'history_status', 'updated');
+        $history_status = !empty($changes['history_status']) ? $changes['history_status'] : 'updated';
 
         $len = count($history);
         if ( $len >= 1 ) {
