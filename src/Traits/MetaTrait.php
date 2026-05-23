@@ -5,7 +5,6 @@ namespace Osoobe\Laravel\Settings\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
-use Osoobe\Utilities\Helpers\Utilities;
 
 
 trait MetaTrait {
@@ -20,7 +19,11 @@ trait MetaTrait {
             ->orderBy('meta_key', 'ASC')
             ->get();
 
-        return Utilities::categorizeObjects($metas, 'category');
+        $result = [];
+        foreach ($metas as $meta) {
+            $result[$meta->category][] = $meta;
+        }
+        return $result;
     }
 
     /**

@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Osoobe\Laravel\Settings\Traits\MetaTrait;
-use Osoobe\Utilities\Helpers\Utilities;
-use Osoobe\Utilities\Traits\TimeDiff;
 
 /**
  * Settings for laravel application.
@@ -18,7 +16,6 @@ use Osoobe\Utilities\Traits\TimeDiff;
 class AppMeta extends Model {
 
     use MetaTrait;
-    use TimeDiff;
 
     protected $table = "app_metas";
     const CATEGORY = "default";
@@ -49,14 +46,15 @@ class AppMeta extends Model {
      * @return array|mixed
      */
     public static function getVersionHostnames() {
-        $version = version('short');
+        $version = config('app.version', '1.0');
+        $hostname = gethostname() ?: 'default';
         $hostnames = static::getOrCreateMeta('app.hostnames', [
             "$version" => [
-                Utilities::getHostnameHash()."" => "0.0.0.0"
+                $hostname => "0.0.0.0"
             ]
         ]);
 
-        $version_hostnames = Utilities::getArrayValue($hostnames, $version);
+        $version_hostnames = !empty($hostnames[$version]) ? $hostnames[$version] : null;
 
         if ( ! is_array($version_hostnames) ) {
             return [];
@@ -71,7 +69,7 @@ class AppMeta extends Model {
      * @return array
      */
     public static function appendVersionHostname() {
-        $version = version('short');
+        $version = config('app.version', '1.0');
         $hostnames = static::getVersionHostnames();
         if ( ! is_array($hostnames) ) {
             $hostnames = [];
@@ -81,7 +79,8 @@ class AppMeta extends Model {
             return [];
         }
 
-        $hostnames[Utilities::getHostnameHash().""] = config('app.service', 'app');
+        $hostname = gethostname() ?: 'default';
+        $hostnames[$hostname] = config('app.service', 'app');
         static::updateMeta('app.hostnames', [
             "$version" => $hostnames
         ]);

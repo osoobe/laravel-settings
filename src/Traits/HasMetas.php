@@ -3,7 +3,6 @@
 namespace Osoobe\Laravel\Settings\Traits;
 
 use Osoobe\Laravel\Settings\Models\ModelMeta;
-use Osoobe\Utilities\Helpers\Utilities;
 
 trait HasMetas {
 
@@ -94,7 +93,11 @@ trait HasMetas {
         $metas = $this->metas()->orderBy('category', 'ASC')
             ->orderBy('meta_key', 'ASC')
             ->get();
-        return Utilities::categorizeObjects($metas, 'category');
+        $result = [];
+        foreach ($metas as $meta) {
+            $result[$meta->category][] = $meta;
+        }
+        return $result;
     }
 
 }

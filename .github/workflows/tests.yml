@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         php: ["8.1", "8.2", "8.3", "8.4"]
-        laravel: ["8.*", "9.*", "10.*"]
+        laravel: ["8.*", "9.*", "10.*", "11.*"]
         include:
           # Map each Laravel version to the matching Testbench major
           - laravel: "8.*"
@@ -29,6 +29,8 @@ jobs:
             testbench: "^7.0"
           - laravel: "10.*"
             testbench: "^8.0"
+          - laravel: "11.*"
+            testbench: "^9.0"
         exclude:
           # Testbench 6.x is not compatible with PHP 8.3+
           - php: "8.3"
@@ -38,6 +40,9 @@ jobs:
           # Testbench 7.x is not compatible with PHP 8.4
           - php: "8.4"
             laravel: "9.*"
+          # Laravel 11 requires PHP 8.2+
+          - php: "8.1"
+            laravel: "11.*"
 
     steps:
       - name: Checkout
