@@ -82,11 +82,16 @@ jobs:
           composer require --dev \
             "orchestra/testbench:${{ matrix.testbench }}" \
             --no-update
-          composer update \
-            --${{ matrix.stability || 'prefer-stable' }} \
-            --prefer-dist \
-            --no-interaction \
-            --no-progress
+          # Retry up to 3 times to handle transient network issues on cold cache.
+          for attempt in 1 2 3; do
+            composer update \
+              --${{ matrix.stability || 'prefer-stable' }} \
+              --prefer-dist \
+              --no-interaction \
+              --no-progress && break
+            echo "composer update attempt $attempt failed, retrying in ${attempt}0s..."
+            sleep $((attempt * 10))
+          done
 
       - name: Run tests
         run: vendor/bin/phpunit
