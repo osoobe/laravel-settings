@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-06-05
+
+### Added
+
+- **Laravel 13 support** — `illuminate/support` constraint extended to `^13.0`; CI matrix now covers Laravel 13 with `orchestra/testbench ^11.0` on PHP 8.3–8.4.
+
 ## [2.3.0] - 2026-05-23
 
 ### Added
@@ -50,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `meta_value` column is now nullable in migrations.
 - `AppMeta::getMeta` and `getOrCreateMeta` now accept a `$default` parameter.
 
-[Unreleased]: https://github.com/osoobe/laravel-settings/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/osoobe/laravel-settings/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/osoobe/laravel-settings/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/osoobe/laravel-settings/compare/2.0.0...v2.3.0
 [2.0.0]: https://github.com/osoobe/laravel-settings/releases/tag/2.0.0
