@@ -177,7 +177,12 @@ trait MetaTrait {
             $meta = null;
         }
         if ( ! is_null($meta) ) {
-            return decrypt($meta);
+            try {
+                return decrypt($meta);
+            } catch (\Throwable $th) {
+                logger("Meta: unable to decrypt meta for $key");
+                return $default;
+            }
         }
         return config($key, $default);
     }
